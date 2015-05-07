@@ -32,7 +32,7 @@ public:
     LcdControl();
     ~LcdControl();
 
-    void setCharacter(int col, int row, const unsigned char code);
+    void setCharacter(int col, int row, unsigned char code);
     void setAllCharacter(lcddata& lcddata);
     void setAttribute(int col, int row, const unsigned char attr);
     void setAllAttribute(lcddata& lcddata);

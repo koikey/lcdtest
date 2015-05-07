@@ -1,5 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QDebug>
+#include <QByteArray>
+#include <QDataStream>
+#include <QHostAddress>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -57,8 +61,8 @@ MainWindow::MainWindow(QWidget *parent) :
     labelEnter->setGeometry(260, 140, 60, 18);
 
     /* タイマ生成 */
-    timer = new QTimer(this);
-    timerSample = new QTimer(this);
+//    timer = new QTimer(this);
+//    timerSample = new QTimer(this);
 
     stateBtnUp_Pushed     = false;
     stateBtnUp_Toggled    = false;
@@ -93,20 +97,23 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(btnEnter, SIGNAL(released()),     this, SLOT(releasedBtnEnter()));
     connect(btnEnter, SIGNAL(rightClicked()), this, SLOT(rightClickedBtnEnter()));
 
-    connect(timer,       SIGNAL(timeout()),   this, SLOT(changeBlink()));
-    connect(timerSample, SIGNAL(timeout()),   this, SLOT(changeSample()));
+//    connect(timer,       SIGNAL(timeout()),   this, SLOT(changeBlink()));
+//    connect(timerSample, SIGNAL(timeout()),   this, SLOT(changeSample()));
+
+	// TCPソケット初期化
+	initTcpSocket();
 
     /* Blinkタイマ起動 */
-    timer->start(500);
+    //timer->start(500);
 
     /* サンプル用タイマ起動 */
-    timerSample->start(500);
+    //timerSample->start(500);
 }
 
 MainWindow::~MainWindow()
 {
-    delete timerSample;
-    delete timer;
+//    delete timerSample;
+//    delete timer;
 
     delete label;
     delete labelUp;
@@ -161,6 +168,7 @@ void MainWindow::pressedBtnUp()
         btnUp->setText("[U]");
         labelUp->setText("  UP");
         stateBtnUp_Pushed = true;
+    	presskey( KEY_TYPE_UP , KEY_EVT_PRESSED );
     }
 }
 void MainWindow::releasedBtnUp()
@@ -174,9 +182,11 @@ void MainWindow::releasedBtnUp()
     if(isPushedBtnUp()) {
         btnUp->setText("[U]");
         labelUp->setText("  UP");
+    	presskey( KEY_TYPE_UP , KEY_EVT_PRESSED );
     } else {
         btnUp->setText("U");
         labelUp->setText("");
+    	presskey( KEY_TYPE_UP , KEY_EVT_RELEASED );
     }
 }
 void MainWindow::rightClickedBtnUp()
@@ -192,6 +202,7 @@ void MainWindow::pressedBtnDown()
         btnDown->setText("[D]");
         labelDown->setText("DOWN");
         stateBtnDown_Pushed = true;
+    	presskey( KEY_TYPE_DOWN , KEY_EVT_PRESSED );
     }
 }
 void MainWindow::releasedBtnDown()
@@ -205,9 +216,11 @@ void MainWindow::releasedBtnDown()
     if(isPushedBtnDown()) {
         btnDown->setText("[D]");
         labelDown->setText("DOWN");
+    	presskey( KEY_TYPE_DOWN , KEY_EVT_PRESSED );
     } else {
         btnDown->setText("D");
         labelDown->setText("");
+    	presskey( KEY_TYPE_DOWN , KEY_EVT_RELEASED );
     }
 }
 void MainWindow::rightClickedBtnDown()
@@ -223,6 +236,7 @@ void MainWindow::pressedBtnLeft()
         btnLeft->setText("[L]");
         labelLeft->setText(" LEFT");
         stateBtnLeft_Pushed = true;
+    	presskey( KEY_TYPE_LEFT , KEY_EVT_PRESSED );
     }
 }
 void MainWindow::releasedBtnLeft()
@@ -236,9 +250,11 @@ void MainWindow::releasedBtnLeft()
     if(isPushedBtnLeft()) {
         btnLeft->setText("[L]");
         labelLeft->setText(" LEFT");
+    	presskey( KEY_TYPE_LEFT , KEY_EVT_PRESSED );
     } else {
         btnLeft->setText("L");
         labelLeft->setText("");
+    	presskey( KEY_TYPE_LEFT , KEY_EVT_RELEASED );
     }
 }
 void MainWindow::rightClickedBtnLeft()
@@ -254,6 +270,7 @@ void MainWindow::pressedBtnRight()
         btnRight->setText("[R]");
         labelRight->setText("RIGHT");
         stateBtnRight_Pushed = true;
+    	presskey( KEY_TYPE_RIGHT , KEY_EVT_PRESSED );
     }
 }
 void MainWindow::releasedBtnRight()
@@ -267,9 +284,11 @@ void MainWindow::releasedBtnRight()
     if(isPushedBtnRight()) {
         btnRight->setText("[R]");
         labelRight->setText("RIGHT");
+    	presskey( KEY_TYPE_RIGHT , KEY_EVT_PRESSED );
     } else {
         btnRight->setText("R");
         labelRight->setText("");
+    	presskey( KEY_TYPE_RIGHT , KEY_EVT_RELEASED );
     }
 }
 void MainWindow::rightClickedBtnRight()
@@ -285,6 +304,7 @@ void MainWindow::pressedBtnBack()
         btnBack->setText("[B]");
         labelBack->setText(" BACK");
         stateBtnBack_Pushed = true;
+    	presskey( KEY_TYPE_CLEAR , KEY_EVT_PRESSED );
     }
 }
 void MainWindow::releasedBtnBack()
@@ -298,9 +318,11 @@ void MainWindow::releasedBtnBack()
     if(isPushedBtnBack()) {
         btnBack->setText("[B]");
         labelBack->setText(" BACK");
+    	presskey( KEY_TYPE_CLEAR , KEY_EVT_PRESSED );
     } else {
         btnBack->setText("BACK");
         labelBack->setText("");
+    	presskey( KEY_TYPE_CLEAR , KEY_EVT_RELEASED );
     }
 }
 void MainWindow::rightClickedBtnBack()
@@ -316,6 +338,7 @@ void MainWindow::pressedBtnEnter()
         btnEnter->setText("[E]");
         labelEnter->setText("ENTER");
         stateBtnEnter_Pushed = true;
+    	presskey( KEY_TYPE_ENTER , KEY_EVT_PRESSED );
     }
 }
 void MainWindow::releasedBtnEnter()
@@ -329,9 +352,11 @@ void MainWindow::releasedBtnEnter()
     if(isPushedBtnEnter()) {
         btnEnter->setText("[E]");
         labelEnter->setText("ENTER");
+    	presskey( KEY_TYPE_ENTER , KEY_EVT_PRESSED );
     } else {
         btnEnter->setText("ENT");
         labelEnter->setText("");
+    	presskey( KEY_TYPE_ENTER , KEY_EVT_RELEASED );
     }
 }
 void MainWindow::rightClickedBtnEnter()
@@ -340,6 +365,7 @@ void MainWindow::rightClickedBtnEnter()
     btnEnter->setCheckable(stateBtnEnter_Toggled);
 }
 
+#if 0
 /* 点滅表示処理 */
 void MainWindow::changeBlink()
 {
@@ -350,8 +376,8 @@ void MainWindow::changeBlink()
 /* 表示サンプル(5秒毎に表示切替) */
 void MainWindow::changeSample()
 {
-    static int state = 0;
-    const unsigned char *pattern = NULL;
+	static int state = 0;
+    //const unsigned char *pattern = NULL;
     const unsigned char pattern0[ROW_MAX * COL_MAX] = {
         0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29,
         0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x00, 0x00, 0x00, 0x00,
@@ -415,11 +441,10 @@ void MainWindow::changeSample()
         state = 0;
         break;
     }
-
     if(pattern != NULL) {
         for(int y = 0; y < ROW_MAX; y++){
             for(int x = 0; x < COL_MAX; x++){
-                lcdCtrl->setCharacter( x, y, *(pattern + (y*20) + x) );
+                lcdCtrl->setCharacter( x, y, m_CharCode[y][x] );
             }
         }
     }
@@ -428,11 +453,98 @@ void MainWindow::changeSample()
     lcdCtrl->setAttribute(  2, 0, ATR_BLK );
     lcdCtrl->setAttribute(  3, 0, ATR_BLK );
     lcdCtrl->setAttribute( 11, 0, ATR_CUR );
-
     state++;
     if(state > 5) {
         state = 0;
     }
 
     timerSample->start(5000);
+}
+#endif
+
+// TCPソケット初期化
+bool MainWindow::initTcpSocket(void)
+{
+	qDebug() << QString(__FUNCTION__) << QString().setNum(__LINE__) << endl;
+
+	bool ret = true;
+
+	// サーバーを生成してlisten状態とする
+	m_TcpServer = new QTcpServer(this);
+	if( !m_TcpServer->listen( QHostAddress::Any, LCDVIEW_CMD_UDP_PORT) ){
+        	qDebug() << "TCP sever listen is failed!" << endl;
+		m_TcpServer->close();
+		qDebug() << QString(__FUNCTION__) << QString().setNum(__LINE__) << endl;
+        return false;
+	}
+	connect( m_TcpServer, SIGNAL( newConnection() ), this, SLOT( acceptConnection() ) );
+
+
+	return ret;
+}
+
+// TCP受信時の処理
+void MainWindow::acceptConnection()
+{
+	qDebug() << QString(__FUNCTION__) << QString().setNum(__LINE__) << endl;
+
+	m_TcpSocket = m_TcpServer->nextPendingConnection();
+	connect( m_TcpSocket, SIGNAL( readyRead() ), this, SLOT( recievedLcdCmd() ) );
+}
+
+// 受信コマンド解析処理
+void MainWindow::recievedLcdCmd()
+{
+	qDebug() << QString(__FUNCTION__) << QString().setNum(__LINE__) << endl;
+
+	if( 0 == m_TcpSocket->bytesAvailable() ){
+		qDebug() << QString(__FUNCTION__) << QString().setNum(__LINE__) << endl;
+		return;
+	}
+
+	QDataStream in( m_TcpSocket );
+	in.setVersion( QDataStream::Qt_5_4 );
+
+	quint8		code   = 0;	// 制御コード
+	quint8		cmdLen = 0;	// LCDコマンドの長さ
+	quint8		colLen = 0;	// 更新対象の文字列の長さ
+	quint8		rowNum = 0;	// 更新対象の行
+	quint8		colNum = 0;	// 更新対象の列(更新開始位置)
+
+	in >> cmdLen;
+	in >> code;
+
+	// 表示指示でない場合は何もせず終了
+	if( 0 == (code & LCDVIEW_CMD_BITMASK_PRINT) ){
+		qDebug() << "Not support control code." << endl;
+		printf("%d %d %d\n", cmdLen, code, colLen );
+		return;
+	}
+
+	// 更新対象の行位置を指定
+	rowNum = ( 0 == ( code & LCDVIEW_CMD_BITMASK_ROW ) ? 0x00 : 0x01 );
+	// 更新開始桁位置を指定
+	colNum = ( code & LCDVIEW_CMD_BITMASK_COL );
+
+	// 書き込み長さが表示エリア(幅20文字)までに収まるようにする
+	colLen = cmdLen - sizeof( code );
+	if( 20 < ( colNum + colLen ) ){
+		colLen = 20 - colNum;
+	}
+	//printf("%d %d %d\n", rowNum, colNum, colLen );
+
+	// 表示エリア情報を更新
+	for( qint32 cnt = 0; cnt < colLen; cnt++ ){
+		quint8 moji;
+		in >> moji;
+		lcdCtrl->setCharacter( colNum + cnt, rowNum, moji );
+	}
+
+    lcdCtrl->setAttribute(  1, 0, ATR_BLK );
+    lcdCtrl->setAttribute(  2, 0, ATR_BLK );
+    lcdCtrl->setAttribute(  3, 0, ATR_BLK );
+    lcdCtrl->setAttribute( 11, 0, ATR_CUR );
+
+	// 再描画
+	this->update();
 }

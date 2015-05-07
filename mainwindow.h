@@ -7,12 +7,28 @@
 #include <QLabel>
 #include <QTimer>
 
+#include <QTcpServer>
+#include <QTcpSocket>
+#define LCDVIEW_CMD_UDP_PORT		(5001)
+#define LCDVIEW_CMD_BITMASK_PRINT	(0x80)
+#define LCDVIEW_CMD_BITMASK_ROW		(0x40)
+#define LCDVIEW_CMD_BITMASK_COL		(0x3F)
+
 #include "qrightclickbutton.h"
 #include "lcdcontrol.h"
 
 namespace Ui {
 class MainWindow;
 }
+
+#ifdef __cplusplus
+extern "C"{
+#endif /* __cplusplus */
+#include "presskey.h"
+extern int presskey( int key_type, int evt_type );
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 class MainWindow : public QMainWindow
 {
@@ -29,8 +45,13 @@ public:
     bool isPushedBtnBack()  { return stateBtnBack_Pushed; }
     bool isPushedBtnEnter() { return stateBtnEnter_Pushed; }
 
+	void setCharCode(int col, int row, unsigned char code);
 private:
-    Ui::MainWindow *ui;
+	bool initTcpSocket( void );	// TCPソケット初期化
+	QTcpServer	*m_TcpServer;	// TCPサーバー
+	QTcpSocket	*m_TcpSocket;	// TCPソケットディスクリプタ
+
+	Ui::MainWindow *ui;
     QRightClickButton *btnUp;
     QRightClickButton *btnDown;
     QRightClickButton *btnLeft;
@@ -61,12 +82,17 @@ private:
     bool stateBtnBack_Toggled;
     bool stateBtnEnter_Pushed;
     bool stateBtnEnter_Toggled;
+	
+	//unsigned char m_CharCode[ROW_MAX][COL_MAX];
 
 protected:
     void paintEvent(QPaintEvent *);
 
 public slots:
-    void pressedBtnUp();
+	void acceptConnection( void );	// TCP接続時の処理
+	void recievedLcdCmd( void );	// 受信データのコマンド解析処理
+
+	void pressedBtnUp();
     void releasedBtnUp();
     void rightClickedBtnUp();
     void pressedBtnDown();
@@ -86,8 +112,8 @@ public slots:
     void releasedBtnEnter();
     void rightClickedBtnEnter();
 
-    void changeBlink();
-    void changeSample();
+//    void changeBlink();
+//    void changeSample();
 };
 
 #endif // MAINWINDOW_H

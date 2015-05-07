@@ -37,7 +37,7 @@ LcdControl::~LcdControl()
 }
 
 /* 文字コード設定(1データ) */
-void LcdControl::setCharacter(int col, int row, const unsigned char code)
+void LcdControl::setCharacter(int col, int row, unsigned char code)
 {
     mutex.lock();
     lcdCharacterField.line[row].data[col] = code;
